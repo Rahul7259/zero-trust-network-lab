@@ -87,13 +87,13 @@ Monitoring Flow:
 
 | Day | Focus | Status |
 |---|---|---|
-| Day 1 | NIST 800-207, mTLS, OAuth2/OIDC, STRIDE, IGA concepts | Complete |
-| Day 2 | AWS VPC infrastructure + OpenZiti installation | Complete |
-| Day 3 | Protected service + zero trust enforcement proof | Complete |
-| Day 4 | Authentik IdP + OAuth2/OIDC federation with OpenZiti | Complete |
-| Day 5 | Wazuh SIEM + agents + custom detection rules | Complete |
-| Week 2 | Attack simulation (nmap, Metasploit, Hydra, Wireshark) | Next |
-| Week 3 | Documentation, architecture diagram, walkthrough video | Planned |
+| Day 1 | NIST 800-207, mTLS, OAuth2/OIDC, STRIDE, IGA concepts | ✅ Complete |
+| Day 2 | AWS VPC infrastructure + OpenZiti installation | ✅ Complete |
+| Day 3 | Protected service + zero trust enforcement proof | ✅ Complete |
+| Day 4 | Authentik IdP + OAuth2/OIDC federation with OpenZiti | ✅ Complete |
+| Day 5 | Wazuh SIEM + agents + custom detection rules | ✅ Complete |
+| Week 2 | Attack simulation (nmap, Metasploit, Hydra, Wireshark) | ⬜ Next |
+| Week 3 | Documentation, architecture diagram, walkthrough video | ⬜ Planned |
 
 ---
 
@@ -109,6 +109,24 @@ Monitoring Flow:
 
 ---
 
+## Repository Structure
+
+```
+zero-trust-network-lab/
+|-- README.md
+|-- progress/
+|   |-- Day1_Concepts_Foundation.docx
+|   |-- Day2_AWS_OpenZiti.docx
+|   |-- Day3_Protected_Service_ZT_Enforcement.docx
+|   |-- Day4_Authentik_Identity_Provider.docx
+|   |-- Day5_Wazuh_SIEM_Monitoring.docx
+|-- configs/
+|   |-- wazuh-custom-rules.xml
+|-- screenshots/
+```
+
+---
+
 ## Skills Demonstrated
 
 - **Cloud Infrastructure:** AWS VPC, subnets, security groups, NAT Gateway, EC2
@@ -118,24 +136,6 @@ Monitoring Flow:
 - **SIEM & Monitoring:** Wazuh deployment, agent management, custom detection rules
 - **Identity Federation:** Authentik to OpenZiti trust via ext-jwt-signer
 - **Compliance:** HIPAA, PCI-DSS, NIST 800-53 mapping via automated SIEM alerts
-
----
-
-## Repository Structure
-
-```
-zero-trust-network-lab/
-├── README.md
-├── docs/
-│   ├── Day1_Concepts_Foundation.docx
-│   ├── Day2_AWS_OpenZiti.docx
-│   ├── Day3_Protected_Service_ZT_Enforcement.docx
-│   ├── Day4_Authentik_Identity_Provider.docx
-│   └── Day5_Wazuh_SIEM_Monitoring.docx
-├── configs/
-│   └── wazuh-custom-rules.xml
-└── screenshots/
-```
 
 ---
 
