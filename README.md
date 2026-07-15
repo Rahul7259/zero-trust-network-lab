@@ -13,23 +13,23 @@ A production-grade Zero Trust Network Access (ZTNA) lab built on AWS, implementi
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                         AWS VPC (10.0.0.0/16)                    │
-│                                                                   │
+│                                                                  │
 │   PUBLIC SUBNET (10.0.1.0/24)                                    │
-│   ┌──────────────────┐  ┌───────────────┐  ┌─────────────────┐  │
-│   │  ztna-controller  │  │ ztna-authentik │  │   ztna-wazuh    │  │
-│   │  OpenZiti         │  │ Authentik IdP  │  │   Wazuh SIEM    │  │
-│   │  Controller +     │  │ OAuth2/OIDC    │  │   Manager +     │  │
-│   │  Router           │  │ Provider       │  │   Dashboard     │  │
-│   │  [Wazuh Agent]    │  │ [Wazuh Agent]  │  │                 │  │
-│   └──────────────────┘  └───────────────┘  └─────────────────┘  │
-│                                                                   │
+│   ┌──────────────────┐  ┌───────────────┐  ┌─────────────────┐   │
+│   │  ztna-controller │  │ ztna-authentik│  │   ztna-wazuh    │   │
+│   │  OpenZiti        │  │ Authentik IdP │  │   Wazuh SIEM    │   │
+│   │  Controller +    │  │ OAuth2/OIDC   │  │   Manager +     │   │
+│   │  Router          │  │ Provider      │  │   Dashboard     │   │ 
+│   │  [Wazuh Agent]   │  │ [Wazuh Agent] │  │                 │   │
+│   └──────────────────┘  └───────────────┘  └─────────────────┘   │
+│                                                                  │
 │   PRIVATE SUBNET (10.0.2.0/24)                                   │
-│   ┌──────────────────┐                                           │
+│   ┌──────────────────-┐                                          │
 │   │  ztna-service     │  ← No public IP                          │
 │   │  nginx (protected)│  ← No open ports (dark network)          │
-│   │  ziti-edge-tunnel │  ← Only reachable via OpenZiti identity   │
-│   │  [Wazuh Agent]    │                                           │
-│   └──────────────────┘                                           │
+│   │  ziti-edge-tunnel │  ← Only reachable via OpenZiti identity  │
+│   │  [Wazuh Agent]    │                                          │
+│   └──────────────────-┘                                          │
 └──────────────────────────────────────────────────────────────────┘
 
 Access Flow:
