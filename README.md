@@ -1,53 +1,29 @@
 # Zero Trust Network Access Lab
 
-A production-grade Zero Trust Network Access (ZTNA) lab built on AWS, implementing identity-based microsegmentation, OIDC federation, and continuous SIEM monitoring — all using open-source tools that mirror enterprise products.
+A production-grade Zero Trust Network Access (ZTNA) architecture built on AWS, implementing identity-based microsegmentation, OAuth2/OIDC federation, continuous SIEM monitoring, and validated through systematic attack simulation using the STRIDE threat model.
 
 **Author:** Rahul Rajkumar Kori
 **M.S. Cybersecurity Risk Management** — Indiana University Bloomington, May 2026
-**Started:** July 2026 | **Status:** Week 1 Complete — Attack Simulation Phase Next
+**Timeline:** July 2026 | **Status:** Complete — Build + Attack Validation
+
+---
+
+## What This Project Demonstrates
+
+This isn't a tutorial follow-along. It's a working zero trust architecture that I designed, built, defended, and then attacked to prove it works.
+
+- **Built** a complete ZTNA fabric using open-source tools that mirror enterprise products
+- **Federated** an OIDC identity provider with the ZTNA controller (same pattern as Okta + Zscaler)
+- **Deployed** a SIEM with custom detection rules for zero-trust-specific events
+- **Validated** the architecture by executing 5 attacks across 3 STRIDE categories — every attack blocked, every attack detected
 
 ---
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                         AWS VPC (10.0.0.0/16)                    │
-│                                                                  │
-│   PUBLIC SUBNET (10.0.1.0/24)                                    │
-│   ┌──────────────────┐  ┌───────────────┐  ┌─────────────────┐   │
-│   │  ztna-controller │  │ ztna-authentik│  │   ztna-wazuh    │   │
-│   │  OpenZiti        │  │ Authentik IdP │  │   Wazuh SIEM    │   │
-│   │  Controller +    │  │ OAuth2/OIDC   │  │   Manager +     │   │
-│   │  Router          │  │ Provider      │  │   Dashboard     │   │ 
-│   │  [Wazuh Agent]   │  │ [Wazuh Agent] │  │                 │   │
-│   └──────────────────┘  └───────────────┘  └─────────────────┘   │
-│                                                                  │
-│   PRIVATE SUBNET (10.0.2.0/24)                                   │
-│   ┌──────────────────-┐                                          │
-│   │  ztna-service     │  ← No public IP                          │
-│   │  nginx (protected)│  ← No open ports (dark network)          │
-│   │  ziti-edge-tunnel │  ← Only reachable via OpenZiti identity  │
-│   │  [Wazuh Agent]    │                                          │
-│   └──────────────────-┘                                          │
-└──────────────────────────────────────────────────────────────────┘
+![Architecture Diagram](screenshots/architecture-diagram.png)
 
-Access Flow:
-  User → Authentik (login) → JWT token → OpenZiti (verify) → mTLS tunnel → nginx
-
-Monitoring Flow:
-  All VMs → Wazuh agents → Wazuh Manager → alerts + compliance mapping
-```
-
----
-
-## What This Project Proves
-
-| Zero Trust Principle | Implementation | Proof |
-|---|---|---|
-| **Verify Explicitly** | OpenZiti mTLS + Authentik OIDC federation | JWT token with correct claims issued and validated |
-| **Least Privilege** | OpenZiti Dial/Bind policies with role attributes | Only #clients can access #nginx — nothing more |
-| **Assume Breach** | Wazuh SIEM with custom detection rules | Failed logins and JWT auth failures detected in real time |
+Four VMs across two subnets. The protected service sits in a private subnet with no public IP and no open ports. All access flows through OpenZiti's mTLS fabric after JWT verification against Authentik. Every VM is monitored by Wazuh agents reporting to a central SIEM manager.
 
 ---
 
@@ -63,41 +39,72 @@ Monitoring Flow:
 
 ---
 
+## The Zero Trust Principles Validated
+
+Every NIST 800-207 principle was tested with real attacks:
+
+| Principle | Implementation | Attack Test | Result |
+|---|---|---|---|
+| **Verify Explicitly** | mTLS + OIDC federation | CLI Forged JWT, JWT Claims Modification | Both blocked |
+| **Least Privilege** | OpenZiti Dial/Bind policies | Dark Network Reconnaissance | Service invisible |
+| **Assume Breach** | Wazuh SIEM + custom rules | JWT Claims Modification, Web Content Tampering | Detected in seconds |
+
+---
+
+## Attack Simulation Results
+
+Systematically executed using the STRIDE threat model. Each attack tests a specific mitigation and produces evidence in the form of terminal output, SIEM alerts, or both.
+
+### Spoofing (S)
+- **CLI Forged JWT Authentication** — Blocked with 401 through the official ziti CLI
+
+### Tampering (T)
+- **Tunnel Traffic Capture** — All traffic encrypted, no application data leaked
+- **JWT Claims Modification** — Blocked + Wazuh Rule 100200 detected the attempt
+- **Web Content Tampering** — Wazuh File Integrity Monitoring detected instantly
+
+### Information Disclosure (I)
+- **Dark Network Reconnaissance** — 999 filtered ports, nginx invisible to insider scan
+
+---
+
 ## Key Results
 
-### Zero Trust Enforcement (Day 3)
-- **Direct access** to nginx → **Connection timed out** (BLOCKED)
-- **OpenZiti access** with valid identity → **Page loads** (ALLOWED)
-- Service is completely invisible without a verified identity
+### Zero Trust Enforcement Proof
+- **Direct access** to nginx → Connection timed out (BLOCKED)
+- **OpenZiti access** with valid identity → Page loads (ALLOWED)
+- **Insider port scan** → 999 filtered ports, nginx invisible (DARK NETWORK)
 
-### Identity Federation (Day 4)
+### Identity Federation
 - Authentik issues signed JWT with correct claims (iss, aud, sub, email)
 - OpenZiti configured as relying party with ext-jwt-signer pointing to Authentik JWKS
 - Full OAuth2 authorization code flow validated end to end
 
-### SIEM Detection (Day 5)
-- Failed SSH login detected with source IP, username, and severity
+### SIEM Detection
+- Failed SSH login detected with source IP, username, severity, and compliance mapping
 - Custom rule 100200: OpenZiti JWT authentication failure (level 10)
 - Custom rule 100201: Multiple failures in 120 seconds — brute force indicator (level 12)
+- File Integrity Monitoring caught nginx content tampering within seconds
 - All events mapped to HIPAA, PCI-DSS, and NIST compliance frameworks
 
 ---
 
-## Project Timeline
+## Project Progression
 
-| Day | Focus | Status |
+| Phase | Focus | Status |
 |---|---|---|
-| Day 1 | NIST 800-207, mTLS, OAuth2/OIDC, STRIDE, IGA concepts | ✅ Complete |
-| Day 2 | AWS VPC infrastructure + OpenZiti installation | ✅ Complete |
-| Day 3 | Protected service + zero trust enforcement proof | ✅ Complete |
-| Day 4 | Authentik IdP + OAuth2/OIDC federation with OpenZiti | ✅ Complete |
-| Day 5 | Wazuh SIEM + agents + custom detection rules | ✅ Complete |
-| Week 2 | Attack simulation (nmap, Metasploit, Hydra, Wireshark) | ⬜ Next |
-| Week 3 | Documentation, architecture diagram, walkthrough video | ⬜ Planned |
+| Concepts | NIST 800-207, mTLS, OAuth2/OIDC, STRIDE, IGA | Complete |
+| Infrastructure | AWS VPC + OpenZiti installation | Complete |
+| Enforcement | Protected service + zero trust proof | Complete |
+| Identity | Authentik IdP + OAuth2/OIDC federation | Complete |
+| Monitoring | Wazuh SIEM + agents + custom detection rules + FIM | Complete |
+| Validation | STRIDE threat model + attack simulation | Complete |
 
 ---
 
 ## NIST 800-207 Alignment
+
+The project implements all seven NIST zero trust tenets:
 
 1. **Everything is a resource** — every VM and service is protected
 2. **All communication secured regardless of location** — mTLS encryption everywhere
@@ -114,15 +121,22 @@ Monitoring Flow:
 ```
 zero-trust-network-lab/
 |-- README.md
-|-- progress/
+|-- Progress/
 |   |-- Day1_Concepts_Foundation.docx
 |   |-- Day2_AWS_OpenZiti.docx
 |   |-- Day3_Protected_Service_ZT_Enforcement.docx
 |   |-- Day4_Authentik_Identity_Provider.docx
 |   |-- Day5_Wazuh_SIEM_Monitoring.docx
+|   |-- STRIDE_And_Attacks.docx
 |-- configs/
 |   |-- wazuh-custom-rules.xml
 |-- screenshots/
+    |-- architecture-diagram.png
+    |-- spoofing-cli-forged-jwt.png
+    |-- tampering-tunnel-traffic-capture.png
+    |-- tampering-jwt-claims-modification.png
+    |-- tampering-web-content-modification.png
+    |-- infodisclosure-dark-network-recon.png
 ```
 
 ---
@@ -133,9 +147,17 @@ zero-trust-network-lab/
 - **Zero Trust Architecture:** NIST 800-207, microsegmentation, dark network principle
 - **Identity & Access Management:** OAuth2, OIDC, JWT validation, JWKS, claims mapping
 - **Network Security:** mTLS, certificate-based authentication, identity-based access
-- **SIEM & Monitoring:** Wazuh deployment, agent management, custom detection rules
+- **SIEM & Monitoring:** Wazuh deployment, agent management, custom detection rules, FIM
 - **Identity Federation:** Authentik to OpenZiti trust via ext-jwt-signer
+- **Offensive Security:** STRIDE threat modeling, nmap, tcpdump, JWT tampering
 - **Compliance:** HIPAA, PCI-DSS, NIST 800-53 mapping via automated SIEM alerts
+- **Documentation:** Structured technical writing with proof at every step
+
+---
+
+## Note on Lab Availability
+
+The AWS infrastructure for this lab has been decommissioned to control costs. The architecture is fully documented, all attack results are captured with screenshots, and the entire build is reproducible from the documentation and configurations in this repository. Rebuild time from documentation: approximately 8-10 hours.
 
 ---
 
